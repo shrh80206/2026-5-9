@@ -28,6 +28,7 @@ export default function Game() {
   const [winner, setWinner] = useState<Color | null>(null)
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [captured, setCaptured] = useState<{ w: PieceType[], b: PieceType[] }>({ w: [], b: [] })
+  const [history, setHistory] = useState<string[]>([])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
@@ -38,10 +39,8 @@ export default function Game() {
     if (!p) return false
     const target = board[dstR][dstC]
     if (target && target.color === p.color) return false
-    const dr = dstR - srcR
-    const dc = dstC - srcC
-    const absDr = Math.abs(dr)
-    const absDc = Math.abs(dc)
+    const dr = dstR - srcR, dc = dstC - srcC
+    const absDr = Math.abs(dr), absDc = Math.abs(dc)
 
     switch (p.type) {
       case 'p':
@@ -81,10 +80,11 @@ export default function Game() {
         const newBoard = board.map(row => [...row])
         
         if (target) {
-          const newCaptured = { ...captured }
-          newCaptured[target.color].push(target.type)
-          setCaptured(newCaptured)
+          setCaptured(prev => ({ ...prev, [target.color]: [...prev[target.color], target.type] }))
         }
+
+        const moveStr = `${p.type.toUpperCase()}${String.fromCharCode(97+selected.c)}${8-selected.r}→${String.fromCharCode(97+c)}${8-r}${target ? '†' : ''}`
+        setHistory(prev => [moveStr, ...prev].slice(0, 10))
 
         if (p.type === 'p' && (r === 0 || r === 7)) {
           newBoard[r][c] = { type: 'q', color: p.color }
@@ -111,62 +111,48 @@ export default function Game() {
   return (
     <div className={`game-wrapper ${winner ? 'game-over' : ''}`}>
       <div className="mode-toggle">
-        <button onClick={() => setIsDarkMode(!isDarkMode)}>
-          {isDarkMode ? '🌙 DARK MODE' : '☀️ LIGHT MODE'}
-        </button>
+        <button onClick={() => setIsDarkMode(!isDarkMode)}>{isDarkMode ? '🌙 DARK' : '☀️ LIGHT'}</button>
       </div>
-
       <h2 className="section-title">Grand Chess</h2>
       
-      <div className="captured-panel b">
-        {captured.w.map((p, i) => <span key={i} className="cap-pc">{unicodeMap[p.toUpperCase()]}</span>)}
-      </div>
-
-      <div className="game-info">
-        {!winner ? (
-          <div className="turn-indicator">
-            <span className={`dot ${turn}`}></span>
-            {turn === 'w' ? 'White' : 'Black'}'s Turn
+      <div className="game-layout">
+        <div className="side-panel history-panel">
+          <h3>LOG</h3>
+          <div className="history-list">
+            {history.map((m, i) => <div key={i} className="history-item">{m}</div>)}
           </div>
-        ) : (
-          <div className="winner-banner animate-glitch" data-text={`${winner === 'w' ? 'WHITE' : 'BLACK'} VICTORIOUS`}>
-            {winner === 'w' ? 'WHITE' : 'BLACK'} VICTORIOUS
-          </div>
-        )}
-      </div>
-
-      <div className="chess-container">
-        <div className="board">
-          {board.map((row, r) => row.map((cell, c) => (
-            <div 
-              key={`${r}-${c}`}
-              className={`sq ${(r+c)%2 ? 'sq-d' : 'sq-l'} ${selected?.r===r && selected?.c===c ? 'sq-s' : ''}`}
-              onClick={() => onSquareClick(r, c)}
-            >
-              {cell && (
-                <span className={`pc ${cell.color} ${cell.type}`}>
-                  {unicodeMap[cell.color === 'w' ? cell.type.toUpperCase() : cell.type.toLowerCase()]}
-                </span>
-              )}
-            </div>
-          )))}
         </div>
-      </div>
 
-      <div className="captured-panel w">
-        {captured.b.map((p, i) => <span key={i} className="cap-pc">{unicodeMap[p]}</span>)}
-      </div>
-
-      <div className="game-hint">
-        💡 <span className="accent-text">System Info:</span> 士兵已解鎖升變路徑。戰損數據實時同步中。
+        <div className="main-game-area">
+          <div className="captured-panel b">
+            {captured.w.map((p, i) => <span key={i} className="cap-pc">{unicodeMap[p.toUpperCase()]}</span>)}
+          </div>
+          <div className="game-info">
+            {!winner ? (
+              <div className="turn-indicator"><span className={`dot ${turn}`}></span>{turn === 'w' ? 'White' : 'Black'}</div>
+            ) : (
+              <div className="winner-banner animate-glitch" data-text={`${winner === 'w' ? 'WHITE' : 'BLACK'} VICTORIOUS`}>{winner === 'w' ? 'WHITE' : 'BLACK'} VICTORIOUS</div>
+            )}
+          </div>
+          <div className="board">
+            {board.map((row, r) => row.map((cell, c) => (
+              <div key={`${r}-${c}`} className={`sq ${(r+c)%2 ? 'sq-d' : 'sq-l'} ${selected?.r===r && selected?.c===c ? 'sq-s' : ''}`} onClick={() => onSquareClick(r, c)}>
+                {cell && <span className={`pc ${cell.color} ${cell.type}`}>{unicodeMap[cell.color === 'w' ? cell.type.toUpperCase() : cell.type.toLowerCase()]}</span>}
+              </div>
+            )))}
+          </div>
+          <div className="captured-panel w">
+            {captured.b.map((p, i) => <span key={i} className="cap-pc">{unicodeMap[p]}</span>)}
+          </div>
+        </div>
       </div>
 
       {winner && (
         <div className="overlay animate-fadein">
           <div className="modal">
             <h1 className="glitch-text-winner" data-text="CHECKMATE">CHECKMATE</h1>
-            <p>{winner === 'w' ? 'White' : 'Black'} has dominated the board.</p>
-            <button onClick={() => { setBoard(makeInitialBoard()); setWinner(null); setTurn('w'); setCaptured({ w: [], b: [] }); }}>REMATCH</button>
+            <p>{winner === 'w' ? 'White' : 'Black'} dominates.</p>
+            <button onClick={() => { setBoard(makeInitialBoard()); setWinner(null); setTurn('w'); setCaptured({ w: [], b: [] }); setHistory([]); }}>REMATCH</button>
           </div>
         </div>
       )}
