@@ -27,6 +27,7 @@ export default function Game() {
   const [turn, setTurn] = useState<Color>('w')
   const [winner, setWinner] = useState<Color | null>(null)
   const [isDarkMode, setIsDarkMode] = useState(true)
+  const [captured, setCaptured] = useState<{ w: PieceType[], b: PieceType[] }>({ w: [], b: [] })
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
@@ -79,7 +80,12 @@ export default function Game() {
         const target = board[r][c]
         const newBoard = board.map(row => [...row])
         
-        // 士兵升變邏輯 (Pawn Promotion to Queen)
+        if (target) {
+          const newCaptured = { ...captured }
+          newCaptured[target.color].push(target.type)
+          setCaptured(newCaptured)
+        }
+
         if (p.type === 'p' && (r === 0 || r === 7)) {
           newBoard[r][c] = { type: 'q', color: p.color }
         } else {
@@ -112,6 +118,10 @@ export default function Game() {
 
       <h2 className="section-title">Grand Chess</h2>
       
+      <div className="captured-panel b">
+        {captured.w.map((p, i) => <span key={i} className="cap-pc">{unicodeMap[p.toUpperCase()]}</span>)}
+      </div>
+
       <div className="game-info">
         {!winner ? (
           <div className="turn-indicator">
@@ -119,7 +129,7 @@ export default function Game() {
             {turn === 'w' ? 'White' : 'Black'}'s Turn
           </div>
         ) : (
-          <div className="winner-banner animate-glitch">
+          <div className="winner-banner animate-glitch" data-text={`${winner === 'w' ? 'WHITE' : 'BLACK'} VICTORIOUS`}>
             {winner === 'w' ? 'WHITE' : 'BLACK'} VICTORIOUS
           </div>
         )}
@@ -143,16 +153,20 @@ export default function Game() {
         </div>
       </div>
 
+      <div className="captured-panel w">
+        {captured.b.map((p, i) => <span key={i} className="cap-pc">{unicodeMap[p]}</span>)}
+      </div>
+
       <div className="game-hint">
-        💡 <span className="accent-text">Promotion Enabled:</span> 士兵抵達底線將自動進化為皇后。
+        💡 <span className="accent-text">System Info:</span> 士兵已解鎖升變路徑。戰損數據實時同步中。
       </div>
 
       {winner && (
         <div className="overlay animate-fadein">
           <div className="modal">
-            <h1>CHECKMATE</h1>
+            <h1 className="glitch-text-winner" data-text="CHECKMATE">CHECKMATE</h1>
             <p>{winner === 'w' ? 'White' : 'Black'} has dominated the board.</p>
-            <button onClick={() => { setBoard(makeInitialBoard()); setWinner(null); setTurn('w'); }}>REMATCH</button>
+            <button onClick={() => { setBoard(makeInitialBoard()); setWinner(null); setTurn('w'); setCaptured({ w: [], b: [] }); }}>REMATCH</button>
           </div>
         </div>
       )}
