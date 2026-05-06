@@ -1,35 +1,36 @@
-﻿import Intro from './components/Intro'
+import Intro from './components/Intro'
 import Profile from './components/Profile'
 import Game from './components/Game'
 
 export default function App() {
   return (
-    <div>
-      <header style={{ padding: 16, borderBottom: '1px solid var(--border)' }}>
-        <h1>期中網站範例</h1>
-        <nav>
-          <a href="#intro" style={{ marginRight: 12 }}>網站介紹</a>
-          <a href="#profile" style={{ marginRight: 12 }}>個人簡介</a>
-          <a href="#game">小遊戲</a>
+    <div className="app-container">
+      <header className="main-header">
+        <h1 className="glitch-text">VOID CHESS</h1>
+        <nav className="main-nav">
+          <a href="#intro">MISSION</a>
+          <a href="#profile">PILOT</a>
+          <a href="#game">STRATEGY</a>
         </nav>
       </header>
 
-      <main style={{ padding: 16 }}>
-        <section id="intro" style={{ marginBottom: 40 }}>
+      <main className="main-content">
+        <section id="intro">
           <Intro />
         </section>
 
-        <section id="profile" style={{ marginBottom: 40 }}>
+        <section id="profile">
           <Profile />
         </section>
 
-        <section id="game" style={{ marginBottom: 40 }}>
+        <section id="game">
           <Game />
         </section>
       </main>
 
-      <footer style={{ padding: 16, borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-        © 期中作品
+      <footer className="main-footer">
+        <div className="footer-line"></div>
+        <p>SYSTEM STATUS: OPERATIONAL | © 2026 VOID ARCHIVE</p>
       </footer>
     </div>
   )

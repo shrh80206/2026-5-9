@@ -1,12 +1,24 @@
-import type { JSX } from "react";
-
-export default function Profile(): JSX.Element {
+export default function Profile() {
   return (
-    <div>
-      <h2>個人簡介</h2>
-      <p>姓名：資工三 陳昱瑄</p>
-      <p>班級 / 系級：資工三</p>
-      <p>興趣：程式設計、前端、遊戲開發、棋藝</p>
+    <div className="profile-card">
+      <h2 className="profile-title">PILOT PROFILE</h2>
+      <div className="profile-info">
+        <div className="info-item">
+          <span className="label">IDENTIFIER:</span>
+          <span className="value">陳昱瑄 (Chen Yu-Xuan)</span>
+        </div>
+        <div className="info-item">
+          <span className="label">RANK:</span>
+          <span className="value">資工三 (CS Junior)</span>
+        </div>
+        <div className="info-item">
+          <span className="label">SPECIALIZATION:</span>
+          <span className="value">Frontend / Game Dev / Algorithmic Chess</span>
+        </div>
+      </div>
+      <div className="profile-bio">
+        <p>沉迷於代碼與邏輯的交界，致力於構建具有極致視覺與流暢體驗的虛擬空間。</p>
+      </div>
     </div>
   )
 }
