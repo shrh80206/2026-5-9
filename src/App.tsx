@@ -2,15 +2,8 @@
 import Intro from './components/Intro'
 import Profile from './components/Profile'
 import Game from './components/Game'
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App(): JSX.Element {
   return (
     <div>
       <header style={{ padding: 16, borderBottom: '1px solid var(--border)' }}>
@@ -42,5 +35,3 @@ function App() {
     </div>
   )
 }
-
-export default App

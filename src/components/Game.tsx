@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+﻿import { useState } from 'react'
 
 type Color = 'w' | 'b'
 type Piece = { kind: string; color: Color } | null
@@ -42,7 +42,6 @@ export default function Game(): JSX.Element {
   function onSquareClick(r: number, c: number) {
     const piece = board[r][c]
     if (selected) {
-      // 移動：允許任何目標（不驗證完整棋規），只檢查不能吃自己方
       const src = selected
       const p = board[src.r][src.c]
       if (!p) {
@@ -55,21 +54,18 @@ export default function Game(): JSX.Element {
       }
       const target = board[r][c]
       if (target && target.color === p.color) {
-        // 選擇同色棋子 -> 改選
         setSelected({ r, c })
         return
       }
-      const newBoard = board.map((row) => row.map((cell) => cell && { ...cell }))
+      const newBoard = board.map((row) => row.map((cell) => (cell ? { ...cell } : null)))
       newBoard[r][c] = { ...p }
       newBoard[src.r][src.c] = null
       setBoard(newBoard)
       setSelected(null)
       setLastMove({ r, c })
       setTurn((t) => (t === 'w' ? 'b' : 'w'))
-      // 清除 highlight
       setTimeout(() => setLastMove(null), 900)
     } else {
-      // 選取
       if (piece && piece.color === turn) {
         setSelected({ r, c })
       }
@@ -86,7 +82,7 @@ export default function Game(): JSX.Element {
   return (
     <div>
       <h2>小遊戲：西洋棋（簡化）</h2>
-      <p>說明：可點選己方棋子再點目標格移動（未實作所有棋規）。輪到：{turn === 'w' ? '白方' : '黑方'}</p>
+      <p>說明：可點選己方棋子再點目標格移動（未實作完整棋規）。輪到：{turn === 'w' ? '白方' : '黑方'}</p>
       <div className="chess-wrap">
         <div className="chess-board" aria-label="chessboard">
           {board.map((row, r) =>
