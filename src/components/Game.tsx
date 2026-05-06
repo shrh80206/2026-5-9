@@ -33,7 +33,7 @@ function makeInitialBoard(): Piece[][] {
   return board
 }
 
-export default function Game(): JSX.Element {
+export default function Game() {
   const [board, setBoard] = useState<Piece[][]>(() => makeInitialBoard())
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null)
   const [turn, setTurn] = useState<Color>('w')

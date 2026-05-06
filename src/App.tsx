@@ -1,9 +1,8 @@
-﻿import React from 'react'
-import Intro from './components/Intro'
+﻿import Intro from './components/Intro'
 import Profile from './components/Profile'
 import Game from './components/Game'
 
-export default function App(): JSX.Element {
+export default function App() {
   return (
     <div>
       <header style={{ padding: 16, borderBottom: '1px solid var(--border)' }}>
