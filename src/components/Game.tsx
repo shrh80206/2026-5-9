@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type Color = 'w' | 'b'
 type PieceType = 'p' | 'r' | 'n' | 'b' | 'q' | 'k'
@@ -12,7 +12,6 @@ const unicodeMap: Record<string, string> = {
 function makeInitialBoard(): Piece[][] {
   const layout: PieceType[] = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r']
   const board: Piece[][] = Array(8).fill(null).map(() => Array(8).fill(null))
-  
   for (let i = 0; i < 8; i++) {
     board[0][i] = { type: layout[i], color: 'b' }
     board[1][i] = { type: 'p', color: 'b' }
@@ -27,13 +26,17 @@ export default function Game() {
   const [selected, setSelected] = useState<{ r: number; c: number } | null>(null)
   const [turn, setTurn] = useState<Color>('w')
   const [winner, setWinner] = useState<Color | null>(null)
+  const [isDarkMode, setIsDarkMode] = useState(true)
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light')
+  }, [isDarkMode])
 
   const isValidMove = (srcR: number, srcC: number, dstR: number, dstC: number): boolean => {
     const p = board[srcR][srcC]
     if (!p) return false
     const target = board[dstR][dstC]
     if (target && target.color === p.color) return false
-
     const dr = dstR - srcR
     const dc = dstC - srcC
     const absDr = Math.abs(dr)
@@ -48,45 +51,40 @@ export default function Game() {
         }
         if (absDc === 1 && dr === dir && target) return true
         return false
-      case 'r':
-        if (dr !== 0 && dc !== 0) return false
-        return isPathClear(srcR, srcC, dstR, dstC)
-      case 'n':
-        return (absDr === 2 && absDc === 1) || (absDr === 1 && absDc === 2)
-      case 'b':
-        if (absDr !== absDc) return false
-        return isPathClear(srcR, srcC, dstR, dstC)
-      case 'q':
-        if (dr !== 0 && dc !== 0 && absDr !== absDc) return false
-        return isPathClear(srcR, srcC, dstR, dstC)
-      case 'k':
-        return absDr <= 1 && absDc <= 1
-      default:
-        return false
+      case 'r': return (dr === 0 || dc === 0) && isPathClear(srcR, srcC, dstR, dstC)
+      case 'n': return (absDr === 2 && absDc === 1) || (absDr === 1 && absDc === 2)
+      case 'b': return absDr === absDc && isPathClear(srcR, srcC, dstR, dstC)
+      case 'q': return (dr === 0 || dc === 0 || absDr === absDc) && isPathClear(srcR, srcC, dstR, dstC)
+      case 'k': return absDr <= 1 && absDc <= 1
+      default: return false
     }
   }
 
   const isPathClear = (sr: number, sc: number, dr: number, dc: number): boolean => {
     const stepR = dr === sr ? 0 : (dr > sr ? 1 : -1)
     const stepC = dc === sc ? 0 : (dc > sc ? 1 : -1)
-    let currR = sr + stepR
-    let currC = sc + stepC
+    let currR = sr + stepR, currC = sc + stepC
     while (currR !== dr || currC !== dc) {
       if (board[currR][currC]) return false
-      currR += stepR
-      currC += stepC
+      currR += stepR; currC += stepC
     }
     return true
   }
 
   function onSquareClick(r: number, c: number) {
     if (winner) return
-    
     if (selected) {
       if (isValidMove(selected.r, selected.c, r, c)) {
+        const p = board[selected.r][selected.c]!
         const target = board[r][c]
         const newBoard = board.map(row => [...row])
-        newBoard[r][c] = board[selected.r][selected.c]
+        
+        // 士兵升變邏輯 (Pawn Promotion to Queen)
+        if (p.type === 'p' && (r === 0 || r === 7)) {
+          newBoard[r][c] = { type: 'q', color: p.color }
+        } else {
+          newBoard[r][c] = p
+        }
         newBoard[selected.r][selected.c] = null
         
         setBoard(newBoard)
@@ -106,6 +104,12 @@ export default function Game() {
 
   return (
     <div className={`game-wrapper ${winner ? 'game-over' : ''}`}>
+      <div className="mode-toggle">
+        <button onClick={() => setIsDarkMode(!isDarkMode)}>
+          {isDarkMode ? '🌙 DARK MODE' : '☀️ LIGHT MODE'}
+        </button>
+      </div>
+
       <h2 className="section-title">Grand Chess</h2>
       
       <div className="game-info">
@@ -137,6 +141,10 @@ export default function Game() {
             </div>
           )))}
         </div>
+      </div>
+
+      <div className="game-hint">
+        💡 <span className="accent-text">Promotion Enabled:</span> 士兵抵達底線將自動進化為皇后。
       </div>
 
       {winner && (
